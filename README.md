@@ -7,6 +7,12 @@
   - 메소드
     - forwardAttepmt
     - showDistance
+- Race 객체 생성
+  - 속성: 등록된 자동차, 동록 제한 수, 이동 횟수
+  - 메소드
+    - registerCars
+    - race
+    - showWinner
 - 경주할 자동차 이름 입력 기능
   - 이름 5자 이하만 가능
   - 마지막 문자로 , 올 수 없음
