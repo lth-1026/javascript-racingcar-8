@@ -4,6 +4,7 @@ import {
   isNumber,
   validateInput,
 } from "./utils/validators.js";
+import Car from "./Car.js";
 import { Console } from "@woowacourse/mission-utils";
 
 export default class Race {
@@ -18,7 +19,8 @@ export default class Race {
   async registerCars() {
     const input = await this.getInput();
     const notValidatedCars = this.splitInput(input);
-    this.#cars = checkDuplicateValues(notValidatedCars);
+    const validatedCars = checkDuplicateValues(notValidatedCars);
+    this.#cars = this.createCars(validatedCars);
   }
 
   async setStop() {
@@ -58,5 +60,9 @@ export default class Race {
     const cars = input.split(",");
     checkEmptyValues(cars);
     return cars;
+  }
+
+  createCars(cars) {
+    return cars.map((car) => new Car(car));
   }
 }

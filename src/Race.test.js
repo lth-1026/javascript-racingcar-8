@@ -1,4 +1,5 @@
 import Race from "./Race.js";
+import Car from "./Car.js";
 
 describe("splitInput 함수 테스트", () => {
   test("쉼표로 구분된 문자열을 배열로 변환한다", () => {
@@ -34,9 +35,11 @@ describe("registerCars 함수 테스트 (getInput만 mock)", () => {
     // getInput()만 mock
     jest.spyOn(race, "getInput").mockResolvedValue("pobi,crong,jun");
 
-    const result = await race.registerCars();
+    await race.registerCars();
 
-    expect(race.cars).toEqual(["pobi", "crong", "jun"]);
+    expect(race.cars).toHaveLength(3);
+    expect(race.cars[1]).toBeInstanceOf(Car);
+    expect(race.cars.map((car) => car.name)).toEqual(["pobi", "crong", "jun"]);
   });
 
   test("입력에 공백이 포함되어도 split 결과 그대로 저장한다(트림 없음)", async () => {
@@ -44,9 +47,13 @@ describe("registerCars 함수 테스트 (getInput만 mock)", () => {
 
     jest.spyOn(race, "getInput").mockResolvedValue(" pobi,crong, jun ");
 
-    const result = await race.registerCars();
+    await race.registerCars();
 
-    expect(race.cars).toEqual([" pobi", "crong", " jun "]);
+    expect(race.cars.map((car) => car.name)).toEqual([
+      " pobi",
+      "crong",
+      " jun ",
+    ]);
   });
 
   test("중복된 이름이 있으면 오류를 던진다", async () => {
