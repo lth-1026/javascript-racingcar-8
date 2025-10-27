@@ -1,3 +1,4 @@
+import { Console, MissionUtils } from "@woowacourse/mission-utils";
 export default class Car {
   #name;
   #totalDistance = "";
@@ -15,8 +16,30 @@ export default class Car {
   }
 
   showDistance() {
-    return `${this.name} : ${this.totalDistance}`;
+    Console.print(`${this.name} : ${this.totalDistance}`);
   }
 
-  forwardAttepmt() {}
+  forwardAttepmt() {
+    if (this.isPossibleForward()) {
+      this.forward();
+    }
+  }
+
+  isPossibleForward() {
+    const randomNumber = this.getRandomNumber();
+
+    if (randomNumber >= 4) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  forward() {
+    this.#totalDistance += "-";
+  }
+
+  getRandomNumber() {
+    return MissionUtils.Random.pickNumberInRange(0, 9);
+  }
 }
