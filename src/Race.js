@@ -1,20 +1,38 @@
 import {
   checkDuplicateValues,
   checkEmptyValues,
+  isNumber,
   validateInput,
 } from "./utils/validators.js";
 import { Console } from "@woowacourse/mission-utils";
 
 export default class Race {
   #cars = [];
+  #maxStop;
+  #stop;
+
+  constructor(maxStop = 100) {
+    this.#maxStop = maxStop;
+  }
+
   async registerCars() {
     const input = await this.getInput();
     const notValidatedCars = this.splitInput(input);
     this.#cars = checkDuplicateValues(notValidatedCars);
   }
 
+  async setStop() {
+    const stop = await this.inputStop();
+    this.isPossibleStop(stop);
+    this.#stop = stop;
+  }
+
   get cars() {
     return this.#cars;
+  }
+
+  get stop() {
+    return this.#stop;
   }
 
   async getInput() {
@@ -23,6 +41,17 @@ export default class Race {
     );
     validateInput(input);
     return input;
+  }
+
+  async inputStop() {
+    const input = await Console.readLineAsync("시도할 횟수는 몇 회인가요?\n");
+    return isNumber(input);
+  }
+
+  isPossibleStop(stop) {
+    if (stop > this.#maxStop) {
+      throw Error(`${this.#maxStop} 보다 큰 수가 올 수 없습니다.`);
+    }
   }
 
   splitInput(input) {

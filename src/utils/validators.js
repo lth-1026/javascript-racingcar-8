@@ -1,5 +1,9 @@
 export function validateEmpty(input) {
-  if (!input || input.trim() === "") {
+  if (
+    input === null ||
+    input === undefined ||
+    (typeof input === "string" && input.trim() === "")
+  ) {
     throw Error("[ERROR] 값을 입력해주세요.");
   }
 }
@@ -42,4 +46,16 @@ export function checkDuplicateValues(arr) {
   }
 
   return arr;
+}
+
+export function isNumber(input) {
+  validateEmpty(input);
+
+  const num = Number(input);
+
+  if (Number.isNaN(num) || !Number.isFinite(num)) {
+    throw Error("[ERROR] 숫자만 입력 가능합니다.");
+  }
+
+  return num;
 }

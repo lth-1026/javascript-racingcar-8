@@ -1,4 +1,4 @@
-import { validateEmpty, validateInput, checkEmptyValues, checkDuplicateValues } from "./validators";
+import { validateEmpty, validateInput, checkEmptyValues, checkDuplicateValues, isNumber } from "./validators";
 
 describe("validateEmpty", () => {
   test("빈 문자열이면 에러를 던진다", () => {
@@ -66,4 +66,27 @@ describe("checkDuplicateValues", () => {
   test("공백 위치가 다른 동일한 값이 포함되어 있으면 에러 발생 안함", () => {
     expect(() => checkDuplicateValues([" pobi", "pobi "])).not.toThrow();
   })
+});
+
+describe("isNumber", () => {
+  test("빈 문자열, null, undefined일 경우 에러를 던진다", () => {
+    expect(() => isNumber("")).toThrow("[ERROR]");
+    expect(() => isNumber("   ")).toThrow("[ERROR]");
+    expect(() => isNumber(null)).toThrow("[ERROR]");
+    expect(() => isNumber(undefined)).toThrow("[ERROR]");
+  });
+
+  test("숫자가 아닌 값일 경우 에러를 던진다", () => {
+    expect(() => isNumber("abc")).toThrow("[ERROR]");
+    expect(() => isNumber("1a")).toThrow("[ERROR]");
+    expect(() => isNumber(NaN)).toThrow("[ERROR]");
+    expect(() => isNumber(Infinity)).toThrow("[ERROR]");
+  });
+
+  test("숫자이거나 숫자 형태의 문자열이면 숫자값을 반환한다", () => {
+    expect(isNumber(5)).toBe(5);
+    expect(isNumber("5")).toBe(5);
+    expect(isNumber(" 10 ")).toBe(10);
+    expect(isNumber(0)).toBe(0);
+  });
 });
