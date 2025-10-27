@@ -5,6 +5,7 @@ class App {
     const race = new Race();
     await race.registerCars();
     await race.setStop();
+    race.start();
   }
 }
 

@@ -29,6 +29,25 @@ export default class Race {
     this.#stop = stop;
   }
 
+  start() {
+    Console.print("\n실행 결과");
+    let round = 0;
+    while (round < this.#stop) {
+      this.runRound();
+      this.showRoundResult();
+      Console.print("");
+      round++;
+    }
+  }
+
+  runRound() {
+    this.#cars.forEach((car) => car.forwardAttepmt());
+  }
+
+  showRoundResult() {
+    this.#cars.forEach((car) => car.showDistance());
+  }
+
   get cars() {
     return this.#cars;
   }
