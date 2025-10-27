@@ -1,13 +1,23 @@
-import { checkEmptyValues, validateInput } from "./utils/validators.js";
+import {
+  checkDuplicateValues,
+  checkEmptyValues,
+  validateInput,
+} from "./utils/validators.js";
 import { Console } from "@woowacourse/mission-utils";
 
 export default class Race {
+  #cars = [];
   async registerCars() {
-    const input = await this.#getInput();
+    const input = await this.getInput();
     const notValidatedCars = this.splitInput(input);
+    this.#cars = checkDuplicateValues(notValidatedCars);
   }
 
-  async #getInput() {
+  get cars() {
+    return this.#cars;
+  }
+
+  async getInput() {
     const input = await Console.readLineAsync(
       "경주할 자동차 이름을 입력하세요.(이름은 쉼표(,) 기준으로 구분)\n"
     );

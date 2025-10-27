@@ -15,10 +15,14 @@ export function validateInput(input) {
   }
 }
 
-export function checkEmptyValues(arr) {
+function isArray(arr) {
   if (!Array.isArray(arr)) {
     throw Error("[ERROR] 입력값이 배열이 아닙니다.");
   }
+}
+
+export function checkEmptyValues(arr) {
+  isArray(arr);
 
   const hasEmpty = arr.some(
     (item) => typeof item === "string" && item.trim() === ""
@@ -27,4 +31,15 @@ export function checkEmptyValues(arr) {
   if (hasEmpty) {
     throw Error("[ERROR] 배열에 빈 문자열이 포함되어 있습니다.");
   }
+}
+
+export function checkDuplicateValues(arr) {
+  isArray(arr);
+
+  const hasDuplicate = new Set(arr).size !== arr.length;
+  if (hasDuplicate) {
+    throw Error("[ERROR] 배열에 중복된 값이 포함되어 있습니다.");
+  }
+
+  return arr;
 }

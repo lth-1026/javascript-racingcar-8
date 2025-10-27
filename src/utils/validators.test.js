@@ -1,4 +1,4 @@
-import { validateEmpty, validateInput, checkEmptyValues } from "./validators";
+import { validateEmpty, validateInput, checkEmptyValues, checkDuplicateValues } from "./validators";
 
 describe("validateEmpty", () => {
   test("빈 문자열이면 에러를 던진다", () => {
@@ -53,4 +53,17 @@ describe("checkEmptyValues", () => {
     expect(() => checkEmptyValues(["pobi", "crong", "jun"])).not.toThrow();
     expect(() => checkEmptyValues([" a ", "b", "c"])).not.toThrow();
   });
+});
+
+describe("checkDuplicateValues", () => {
+  test("배열에 중복된 값이 포함되어 있으면 에러 발생", () => {
+    expect(() => checkDuplicateValues(["pobi", "pobi", "jun"])).toThrow(
+      "[ERROR]"
+    );
+    expect(() => checkDuplicateValues(["pobi", "crong", "jun"])).not.toThrow();
+  });
+
+  test("공백 위치가 다른 동일한 값이 포함되어 있으면 에러 발생 안함", () => {
+    expect(() => checkDuplicateValues([" pobi", "pobi "])).not.toThrow();
+  })
 });
