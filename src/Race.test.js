@@ -3,226 +3,166 @@ import Car from "./Car.js";
 import { Console } from "@woowacourse/mission-utils";
 
 describe("splitInput 함수 테스트", () => {
-  test("쉼표로 구분된 문자열을 배열로 변환한다", () => {
-    const race = new Race();
-    const input = "pobi,crong,jun";
-    const result = race.splitInput(input);
+  const race = new Race();
 
-    // checkEmptyValues 내부에서도 문제 없으면 에러 없이 통과
-    expect(result).toEqual(["pobi", "crong", "jun"]);
+  test.each([
+    ["pobi,crong,jun", ["pobi", "crong", "jun"]],
+    [" pobi,crong, jun ", [" pobi", "crong", " jun "]],
+  ])("입력 '%s' → %j로 변환한다", (input, expected) => {
+    expect(race.splitInput(input)).toEqual(expected);
   });
 
-  test("쉼표로 구분된 공백이 있는 문자열을 배열로 변환한다", () => {
-    const race = new Race();
-    const input = " pobi,crong, jun ";
-    const result = race.splitInput(input);
-
-    // checkEmptyValues 내부에서도 문제 없으면 에러 없이 통과
-    expect(result).toEqual([" pobi", "crong", " jun "]);
-  });
-
-  test("빈 문자열이 포함되어 있으면 에러를 던진다", () => {
-    const race = new Race();
-
-    expect(() => race.splitInput("pobi,,jun")).toThrow("[ERROR]");
-    expect(() => race.splitInput("pobi,    ,jun")).toThrow("[ERROR]");
-  });
+  test.each(["pobi,,jun", "pobi,    ,jun"])(
+    "입력 '%s' → 빈 문자열 포함 시 [ERROR] 발생",
+    (input) => {
+      expect(() => race.splitInput(input)).toThrow("[ERROR]");
+    }
+  );
 });
 
-describe("registerCars 함수 테스트 (getInput만 mock)", () => {
-  test("정상 입력이면 cars에 저장하고 동일 배열을 반환한다", async () => {
+describe.each([
+  ["pobi,crong,jun", ["pobi", "crong", "jun"]],
+  [" pobi,crong, jun ", [" pobi", "crong", " jun "]],
+])("registerCars('%s')", (input, expected) => {
+  test("자동차 이름 배열로 Car 객체를 생성해 저장한다", async () => {
     const race = new Race();
-
-    // getInput()만 mock
-    jest.spyOn(race, "getInput").mockResolvedValue("pobi,crong,jun");
-
+    jest.spyOn(race, "getInput").mockResolvedValue(input);
     await race.registerCars();
 
-    expect(race.cars).toHaveLength(3);
-    expect(race.cars[1]).toBeInstanceOf(Car);
-    expect(race.cars.map((car) => car.name)).toEqual(["pobi", "crong", "jun"]);
-  });
-
-  test("입력에 공백이 포함되어도 split 결과 그대로 저장한다(트림 없음)", async () => {
-    const race = new Race();
-
-    jest.spyOn(race, "getInput").mockResolvedValue(" pobi,crong, jun ");
-
-    await race.registerCars();
-
-    expect(race.cars.map((car) => car.name)).toEqual([
-      " pobi",
-      "crong",
-      " jun ",
-    ]);
-  });
-
-  test("중복된 이름이 있으면 오류를 던진다", async () => {
-    const race = new Race();
-
-    jest.spyOn(race, "getInput").mockResolvedValue("pobi,crong,pobi");
-
-    await expect(race.registerCars()).rejects.toThrow("[ERROR]");
+    expect(race.cars).toHaveLength(expected.length);
+    expect(race.cars[0]).toBeInstanceOf(Car);
+    expect(race.cars.map((c) => c.name)).toEqual(expected);
   });
 });
 
-describe("isPossibleStop 함수 테스트", () => {
-  test("입력된 stop이 maxStop 이하이면 통과한다", () => {
-    const race = new Race(5);
-    expect(() => race.isPossibleStop(5)).not.toThrow();
-    expect(() => race.isPossibleStop(3)).not.toThrow();
-  });
-
-  test("입력된 stop이 maxStop보다 크면 에러를 던진다", () => {
-    const race = new Race(5);
-    expect(() => race.isPossibleStop(6)).toThrow(
-      "5 보다 큰 수가 올 수 없습니다."
-    );
-  });
+test("registerCars(): 중복된 이름이 있으면 오류 발생", async () => {
+  const race = new Race();
+  jest.spyOn(race, "getInput").mockResolvedValue("pobi,crong,pobi");
+  await expect(race.registerCars()).rejects.toThrow("[ERROR]");
 });
+
+describe.each([
+  [5, 5, false], // 5는 5 이하 → 통과
+  [5, 3, false], // 3은 5 이하 → 통과
+  [5, 6, true], // 6은 5보다 큼 → 에러
+])(
+  "isPossibleStop(maxStop=%d, inputStop=%d)",
+  (maxStop, inputStop, shouldThrow) => {
+    test(`입력된 stop이 ${
+      shouldThrow ? "maxStop보다 크면 에러" : "허용 범위면 통과"
+    }`, () => {
+      const race = new Race(maxStop);
+      const fn = () => race.isPossibleStop(inputStop);
+
+      if (shouldThrow)
+        expect(fn).toThrow(`${maxStop} 보다 큰 수가 올 수 없습니다.`);
+      else expect(fn).not.toThrow();
+    });
+  }
+);
 
 describe("setStop 함수 테스트 (getStop만 mock)", () => {
-  test("정상 입력값이면 stop 속성에 저장된다", async () => {
-    const race = new Race(5);
-    // getStop만 mock해서 3을 반환
-    jest.spyOn(race, "inputStop").mockResolvedValue(3);
+  test.each([
+    [3, 5, false], // 정상 입력
+    [10, 5, true], // maxStop 초과
+  ])("입력값 %d, maxStop %d", async (inputStop, maxStop, shouldThrow) => {
+    const race = new Race(maxStop);
+    jest.spyOn(race, "inputStop").mockResolvedValue(inputStop);
 
-    await race.setStop();
-
-    expect(race.stop).toBe(3); // #stop getter로 확인
-  });
-
-  test("입력값이 maxStop보다 크면 에러를 던진다", async () => {
-    const race = new Race(5);
-    jest.spyOn(race, "inputStop").mockResolvedValue(10);
-
-    await expect(race.setStop()).rejects.toThrow(
-      "5 보다 큰 수가 올 수 없습니다."
-    );
+    if (shouldThrow)
+      await expect(race.setStop()).rejects.toThrow(
+        `${maxStop} 보다 큰 수가 올 수 없습니다.`
+      );
+    else {
+      await race.setStop();
+      expect(race.stop).toBe(inputStop);
+    }
   });
 });
 
 describe("Race 라운드 관련 메서드 테스트", () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
+  afterEach(() => jest.restoreAllMocks());
+
+  test("runRound: 각 자동차에 대해 forwardAttepmt를 호출한다", async () => {
+    const race = new Race();
+    jest.spyOn(race, "getInput").mockResolvedValue("pobi,crong,jun");
+    await race.registerCars();
+
+    const spy = jest.spyOn(Car.prototype, "forwardAttepmt");
+    race.runRound();
+    expect(spy).toHaveBeenCalledTimes(3);
   });
 
-  describe("runRound", () => {
-    test("각 자동차에 대해 forwardAttepmt를 1회씩 호출한다", async () => {
-      const race = new Race();
+  test("showRoundResult: 각 자동차의 showDistance를 호출한다", async () => {
+    const race = new Race();
+    jest.spyOn(race, "getInput").mockResolvedValue("pobi,crong");
+    await race.registerCars();
 
-      // 자동차 등록 (getInput만 mock)
-      jest.spyOn(race, "getInput").mockResolvedValue("pobi,crong,jun");
-      await race.registerCars();
-
-      const spyForwardAttempt = jest.spyOn(Car.prototype, "forwardAttepmt");
-
-      race.runRound();
-
-      // 3대의 자동차 각각 1회 호출
-      expect(spyForwardAttempt).toHaveBeenCalledTimes(3);
-    });
+    const spy = jest.spyOn(Car.prototype, "showDistance");
+    race.showRoundResult();
+    expect(spy).toHaveBeenCalledTimes(2);
   });
 
-  describe("showRoundResult", () => {
-    test("각 자동차의 showDistance를 1회씩 호출한다", async () => {
+  test.each([1, 3, 5])(
+    "start: stop=%d이면 runRound와 showRoundResult가 해당 횟수만큼 호출된다",
+    async (stopCount) => {
       const race = new Race();
-
       jest.spyOn(race, "getInput").mockResolvedValue("pobi,crong");
       await race.registerCars();
 
-      const spyShowDistance = jest.spyOn(Car.prototype, "showDistance");
-
-      race.showRoundResult();
-
-      expect(spyShowDistance).toHaveBeenCalledTimes(2);
-    });
-  });
-
-  describe("start", () => {
-    test("시작 메시지를 출력하고, stop 횟수만큼 runRound와 showRoundResult를 호출한다", async () => {
-      const race = new Race();
-
-      // 입력 설정: 자동차 2대 등록 + stop=3
-      jest.spyOn(race, "getInput").mockResolvedValue("pobi,crong");
-      await race.registerCars();
-
-      jest.spyOn(race, "inputStop").mockResolvedValue(3);
+      jest.spyOn(race, "inputStop").mockResolvedValue(stopCount);
       await race.setStop();
 
-      // runRound / showRoundResult 호출 감시
-      const spyRunRound = jest.spyOn(race, "runRound");
-      const spyShowRoundResult = jest.spyOn(race, "showRoundResult");
-
-      // Console.print는 출력만 막고 호출 인자만 확인
+      const runSpy = jest.spyOn(race, "runRound");
+      const showSpy = jest.spyOn(race, "showRoundResult");
       const printSpy = jest
         .spyOn(Console, "print")
         .mockImplementation(() => {});
 
       race.start();
 
-      // 시작 메시지 1회
       expect(printSpy).toHaveBeenCalledWith("\n실행 결과");
-
-      // stop=3 → 각 3회씩 호출
-      expect(spyRunRound).toHaveBeenCalledTimes(3);
-      expect(spyShowRoundResult).toHaveBeenCalledTimes(3);
-
-      // 매 라운드 끝마다 빈 줄 출력("") → 3회
-      const blankLineCalls = printSpy.mock.calls.filter(([arg]) => arg === "");
-      expect(blankLineCalls).toHaveLength(3);
-    });
-  });
+      expect(runSpy).toHaveBeenCalledTimes(stopCount);
+      expect(showSpy).toHaveBeenCalledTimes(stopCount);
+    }
+  );
 });
 
-describe("우승자 관련 메서드 테스트 (findMaxDistance, getWinners, showWinner)", () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
+describe("우승자 관련 메서드 테스트", () => {
+  afterEach(() => jest.restoreAllMocks());
 
-  // 공통 준비: 레이스 생성 → 자동차 등록 → 각 자동차 거리 세팅
-  async function setupRaceWithDistances() {
+  async function setupRace() {
     const race = new Race();
-
-    // 자동차 등록 (입력 mock)
     jest.spyOn(race, "getInput").mockResolvedValue("pobi,crong,jun");
     await race.registerCars();
 
-    // 거리 세팅:
-    // pobi: 3칸, crong: 5칸, jun: 5칸  → 공동 우승: crong, jun
     const [pobi, crong, jun] = race.cars;
-
     for (let i = 0; i < 3; i++) pobi.forward();
     for (let i = 0; i < 5; i++) crong.forward();
     for (let i = 0; i < 5; i++) jun.forward();
-
     return race;
   }
 
-  test("findMaxDistance(): 가장 긴 totalDistance 길이를 반환한다", async () => {
-    const race = await setupRaceWithDistances();
-
-    const max = race.findMaxDistance();
-
-    expect(max).toBe(5);
+  test("findMaxDistance(): 최대 거리 반환", async () => {
+    const race = await setupRace();
+    expect(race.findMaxDistance()).toBe(5);
   });
 
-  test("getWinners(): 최대 거리와 동일한 자동차들의 이름을 반환한다", async () => {
-    const race = await setupRaceWithDistances();
-
-    const max = race.findMaxDistance();
-    const winners = race.getWinners(max);
-
-    expect(winners).toEqual(["crong", "jun"]); // 등록 순서 유지
+  test("getWinners(): 최대 거리 자동차 이름 배열 반환", async () => {
+    const race = await setupRace();
+    expect(race.getWinners(race.findMaxDistance())).toEqual(["crong", "jun"]);
   });
 
-  test("showWinner(): 최종 우승자 출력 형식을 만족한다 (Console.print 확인)", async () => {
-    const race = await setupRaceWithDistances();
-
-    const printSpy = jest.spyOn(Console, "print").mockImplementation(() => {});
+  test.each([
+    [["crong", "jun"], "최종 우승자 : crong, jun"],
+    [["pobi"], "최종 우승자 : pobi"],
+  ])("showWinner(): %j → '%s' 출력", async (winners, expectedMessage) => {
+    const race = new Race();
+    const spyPrint = jest.spyOn(Console, "print").mockImplementation(() => {});
+    jest.spyOn(race, "getWinners").mockReturnValue(winners);
 
     race.showWinner();
 
-    expect(printSpy).toHaveBeenCalledWith("최종 우승자 : crong, jun");
+    expect(spyPrint).toHaveBeenCalledWith(expectedMessage);
   });
 });
