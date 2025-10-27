@@ -1,9 +1,10 @@
-import { validateInput } from "./utils/validators.js";
+import { checkEmptyValues, validateInput } from "./utils/validators.js";
 import { Console } from "@woowacourse/mission-utils";
 
 export default class Race {
   async registerCars() {
     const input = await this.#getInput();
+    const notValidatedCars = this.splitInput(input);
   }
 
   async #getInput() {
@@ -12,5 +13,11 @@ export default class Race {
     );
     validateInput(input);
     return input;
+  }
+
+  splitInput(input) {
+    const cars = input.split(",");
+    checkEmptyValues(cars);
+    return cars;
   }
 }
