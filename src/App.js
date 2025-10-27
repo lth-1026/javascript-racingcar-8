@@ -6,6 +6,7 @@ class App {
     await race.registerCars();
     await race.setStop();
     race.start();
+    race.showWinner();
   }
 }
 

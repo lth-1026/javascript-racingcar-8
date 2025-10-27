@@ -40,6 +40,22 @@ export default class Race {
     }
   }
 
+  showWinner() {
+    const maxDistance = this.findMaxDistance();
+    const winners = this.getWinners(maxDistance);
+    Console.print(`최종 우승자 : ${winners.join(", ")}`);
+  }
+
+  findMaxDistance() {
+    return Math.max(...this.#cars.map((car) => car.totalDistance.length));
+  }
+
+  getWinners(maxDistance) {
+    return this.#cars
+      .filter((car) => car.totalDistance.length === maxDistance)
+      .map((car) => car.name);
+  }
+
   runRound() {
     this.#cars.forEach((car) => car.forwardAttepmt());
   }

@@ -174,3 +174,55 @@ describe("Race 라운드 관련 메서드 테스트", () => {
     });
   });
 });
+
+describe("우승자 관련 메서드 테스트 (findMaxDistance, getWinners, showWinner)", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  // 공통 준비: 레이스 생성 → 자동차 등록 → 각 자동차 거리 세팅
+  async function setupRaceWithDistances() {
+    const race = new Race();
+
+    // 자동차 등록 (입력 mock)
+    jest.spyOn(race, "getInput").mockResolvedValue("pobi,crong,jun");
+    await race.registerCars();
+
+    // 거리 세팅:
+    // pobi: 3칸, crong: 5칸, jun: 5칸  → 공동 우승: crong, jun
+    const [pobi, crong, jun] = race.cars;
+
+    for (let i = 0; i < 3; i++) pobi.forward();
+    for (let i = 0; i < 5; i++) crong.forward();
+    for (let i = 0; i < 5; i++) jun.forward();
+
+    return race;
+  }
+
+  test("findMaxDistance(): 가장 긴 totalDistance 길이를 반환한다", async () => {
+    const race = await setupRaceWithDistances();
+
+    const max = race.findMaxDistance();
+
+    expect(max).toBe(5);
+  });
+
+  test("getWinners(): 최대 거리와 동일한 자동차들의 이름을 반환한다", async () => {
+    const race = await setupRaceWithDistances();
+
+    const max = race.findMaxDistance();
+    const winners = race.getWinners(max);
+
+    expect(winners).toEqual(["crong", "jun"]); // 등록 순서 유지
+  });
+
+  test("showWinner(): 최종 우승자 출력 형식을 만족한다 (Console.print 확인)", async () => {
+    const race = await setupRaceWithDistances();
+
+    const printSpy = jest.spyOn(Console, "print").mockImplementation(() => {});
+
+    race.showWinner();
+
+    expect(printSpy).toHaveBeenCalledWith("최종 우승자 : crong, jun");
+  });
+});
